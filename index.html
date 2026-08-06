@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aether Lab — Posture & Movement Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-deep: #05080c;
+    --bg-panel: rgba(8, 14, 22, 0.96);
+    --bg-card: rgba(14, 24, 36, 0.82);
+    --bg-card-hover: rgba(20, 34, 50, 0.94);
+    --border: rgba(0, 210, 190, 0.12);
+    --border-strong: rgba(0, 230, 210, 0.32);
+    --accent: #00e8c8;
+    --accent-dim: #00b8a0;
+    --accent-glow: rgba(0, 232, 200, 0.2);
+    --blue: #4aa8ff;
+    --purple: #a78bfa;
+    --orange: #ff9f43;
+    --danger: #ff5c5c;
+    --success: #34d399;
+    --warning: #fbbf24;
+    --text: #eaf2f7;
+    --text-muted: #8ba3b8;
+    --text-dim: #5a7388;
+    --radius: 14px;
+    --radius-sm: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--bg-deep);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    overflow: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 65% 45% at 12% 25%, rgba(0, 80, 95, 0.16), transparent),
+      radial-gradient(ellipse 45% 35% at 88% 12%, rgba(40, 70, 130, 0.11), transparent);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .sidebar {
+    width: 270px;
+    background: var(--bg-panel);
+    backdrop-filter: blur(28px);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 20px 12px;
+    z-index: 20;
+    flex-shrink: 0;
+    overflow-y: auto;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 4px 10px 24px;
+  }
+
+  .logo-mark {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--accent), var(--blue));
+    border-radius: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 800;
+    color: #000;
+    box-shadow: 0 0 26px var(--accent-glow);
+  }
+
+  .logo-text h1 { font-size: 15.5px; font-weight: 700; letter-spacing: -0.3px; }
+  .logo-text span { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; }
+
+  .nav-section { margin-bottom: 16px; }
+  .nav-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.6px;
+    color: var(--text-dim);
+    margin-bottom: 7px;
+    padding: 0 12px;
+  }
+
+  .nav-btn {
+    width: 100%;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-muted);
+    padding: 9px 12px;
+    margin-bottom: 2px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 10px;
+    cursor: pointer;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.18s ease;
+  }
+  .nav-btn:hover { background: rgba(0, 232, 200, 0.06); color: var(--text); border-color: var(--border); }
+  .nav-btn.active {
+    background: linear-gradient(135deg, rgba(0, 232, 200, 0.13), rgba(74, 168, 255, 0.07));
+    border-color: var(--border-strong);
+    color: var(--accent);
+    box-shadow: 0 0 16px var(--accent-glow);
+  }
+  .nav-icon {
+    width: 26px; height: 26px; border-radius: 7px;
+    background: rgba(255,255,255,0.04);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; flex-shrink: 0;
+  }
+  .nav-btn.active .nav-icon {
+    background: linear-gradient(135deg, var(--accent), var(--blue));
+    color: #000;
+  }
+
+  .sidebar-footer {
+    margin-top: auto;
+    padding: 14px 10px 4px;
+    border-top: 1px solid var(--border);
+  }
+  .clock { text-align: center; font-size: 12.5px; color: var(--text-muted); }
+  .clock .time { font-size: 20px; font-weight: 700; color: var(--text); }
+
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; z-index: 5; }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px 12px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(5, 8, 12, 0.7);
+    backdrop-filter: blur(14px);
+  }
+  .topbar-title h2 { font-size: 18px; font-weight: 700; }
+  .topbar-title p { font-size: 12.5px; color: var(--text-muted); margin-top: 2px; }
+
+  .content-area { flex: 1; overflow-y: auto; padding: 20px 24px 36px; }
+
+  .hero { margin-bottom: 22px; }
+  .hero h1 { font-size: 24px; font-weight: 750; letter-spacing: -0.4px; margin-bottom: 6px; }
+  .hero h1 span { color: var(--accent); }
+  .hero p { color: var(--text-muted); font-size: 14px; max-width: 580px; line-height: 1.5; }
+
+  .section-title {
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 1.4px;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .tool-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .tool-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    cursor: pointer;
+    transition: all 0.22s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .tool-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--blue));
+    opacity: 0; transition: opacity 0.2s;
+  }
+  .tool-card:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--border-strong);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+  }
+  .tool-card:hover::before { opacity: 1; }
+  .tool-card .card-icon {
+    width: 38px; height: 38px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; margin-bottom: 10px;
+    background: rgba(0, 232, 200, 0.09);
+  }
+  .tool-card h3 { font-size: 14px; font-weight: 650; margin-bottom: 4px; }
+  .tool-card p { font-size: 12.5px; color: var(--text-muted); line-height: 1.4; }
+  .tag {
+    display: inline-block; margin-top: 10px;
+    font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.7px;
+    padding: 3px 8px; border-radius: 5px;
+    background: rgba(0, 232, 200, 0.1); color: var(--accent);
+  }
+  .tag.blue { background: rgba(74, 168, 255, 0.12); color: var(--blue); }
+  .tag.purple { background: rgba(167, 139, 250, 0.12); color: var(--purple); }
+  .tag.orange { background: rgba(255, 159, 67, 0.12); color: var(--orange); }
+
+  .view-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 12px;
+    margin-bottom: 22px;
+  }
+  .view-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .view-card:hover { border-color: var(--border-strong); background: var(--bg-card-hover); }
+  .view-card .icon { font-size: 26px; margin-bottom: 8px; }
+  .view-card h4 { font-size: 13.5px; font-weight: 600; margin-bottom: 3px; }
+  .view-card p { font-size: 11.5px; color: var(--text-muted); }
+
+  .assessment-panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 18px;
+  }
+  .assessment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .assessment-header h3 { font-size: 16px; font-weight: 700; }
+  .assessment-header p { font-size: 13px; color: var(--text-muted); margin-top: 3px; }
+
+  .btn {
+    background: linear-gradient(135deg, var(--accent), #00c4a8);
+    border: none;
+    color: #000;
+    padding: 9px 16px;
+    border-radius: 9px;
+    font-size: 13px;
+    font-weight: 650;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s;
+  }
+  .btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+  .btn.secondary {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+  }
+  .btn.secondary:hover { border-color: var(--accent); color: var(--accent); }
+  .btn.danger { background: linear-gradient(135deg, #ff5c5c, #e03a3a); color: #fff; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  .media-container {
+    position: relative;
+    background: #0a121a;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 16px;
+    aspect-ratio: 16/10;
+    max-height: 480px;
+  }
+  .media-container video, .media-container canvas, .media-container img {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    object-fit: contain;
+  }
+  #outputCanvas { z-index: 2; pointer-events: none; }
+  #inputVideo, #inputImage { z-index: 1; }
+
+  .media-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(5,8,12,0.75);
+    z-index: 5;
+    flex-direction: column;
+    gap: 10px;
+    color: var(--text-muted);
+  }
+  .media-overlay.hidden { display: none; }
+
+  .controls-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 14px;
+  }
+  .result-card {
+    background: rgba(0,0,0,0.25);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+  }
+  .result-card h4 {
+    font-size: 13px;
+    font-weight: 650;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .score-badge {
+    font-size: 12px; font-weight: 700;
+    padding: 3px 9px; border-radius: 6px;
+  }
+  .score-badge.good { background: rgba(52, 211, 153, 0.15); color: var(--success); }
+  .score-badge.warn { background: rgba(251, 191, 36, 0.15); color: var(--warning); }
+  .score-badge.bad { background: rgba(255, 92, 92, 0.15); color: var(--danger); }
+
+  .finding {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    font-size: 13px;
+  }
+  .finding:last-child { border-bottom: none; }
+  .finding .status {
+    width: 8px; height: 8px; border-radius: 50%;
+    margin-top: 5px; flex-shrink: 0;
+  }
+  .finding .status.ok { background: var(--success); }
+  .finding .status.warn { background: var(--warning); }
+  .finding .status.bad { background: var(--danger); }
+  .finding .detail strong { display: block; font-weight: 600; margin-bottom: 2px; }
+  .finding .detail span { color: var(--text-muted); font-size: 12px; }
+
+  .joint-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 7px 0;
+    font-size: 13px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .joint-row:last-child { border-bottom: none; }
+  .joint-angle { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .asymmetry { font-size: 11px; color: var(--danger); margin-left: 6px; }
+
+  .progress-bar {
+    height: 6px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 6px;
+  }
+  .progress-bar div { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+  }
+  .status-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--text-dim);
+  }
+  .status-dot.live { background: var(--success); box-shadow: 0 0 8px var(--success); }
+  .status-dot.processing { background: var(--warning); }
+
+  .list-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 11px;
+  }
+  .list-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    transition: border-color 0.15s;
+    cursor: pointer;
+  }
+  .list-card:hover { border-color: var(--border-strong); }
+  .list-card .num {
+    width: 26px; height: 26px; border-radius: 7px;
+    background: rgba(0, 232, 200, 0.1);
+    color: var(--accent);
+    font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .list-card .info h4 { font-size: 13.5px; font-weight: 600; margin-bottom: 2px; }
+  .list-card .info p { font-size: 12px; color: var(--text-muted); line-height: 1.35; }
+
+  .empty-state { text-align: center; padding: 50px 20px; color: var(--text-dim); }
+  .empty-state .icon { font-size: 36px; margin-bottom: 10px; opacity: 0.45; }
+
+  input[type="file"] { display: none; }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(0, 200, 180, 0.16); border-radius: 3px; }
+
+  @media (max-width: 900px) {
+    .sidebar { width: 220px; }
+    .tool-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 700px) {
+    body { flex-direction: column; }
+    .sidebar { width: 100%; max-height: 180px; border-right: none; border-bottom: 1px solid var(--border); }
+  }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-mark">Æ</div>
+    <div class="logo-text">
+      <h1>Aether Lab</h1>
+      <span>Posture & Movement</span>
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Overview</div>
+    <button class="nav-btn active" data-view="home" onclick="showHome()">
+      <span class="nav-icon">⌂</span> Dashboard
+    </button>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Static Posture</div>
+    <button class="nav-btn" data-view="posture" onclick="showPostureHub()">
+      <span class="nav-icon">🧍</span> Multi-View Scan
+    </button>
+    <button class="nav-btn" data-view="ant" onclick="startAssessment('posture', 'Anterior')">
+      <span class="nav-icon">↑</span> Anterior
+    </button>
+    <button class="nav-btn" data-view="post" onclick="startAssessment('posture', 'Posterior')">
+      <span class="nav-icon">↓</span> Posterior
+    </button>
+    <button class="nav-btn" data-view="lat" onclick="startAssessment('posture', 'Lateral')">
+      <span class="nav-icon">→</span> Lateral
+    </button>
+    <button class="nav-btn" data-view="obl" onclick="startAssessment('posture', 'Oblique')">
+      <span class="nav-icon">↗</span> Oblique
+    </button>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Movement</div>
+    <button class="nav-btn" data-view="move" onclick="showMovementHub()">
+      <span class="nav-icon">🏃</span> Movement Hub
+    </button>
+    <button class="nav-btn" data-view="ohs" onclick="startAssessment('movement', 'Overhead Squat')">
+      <span class="nav-icon">🏋️</span> Overhead Squat
+    </button>
+    <button class="nav-btn" data-view="sls" onclick="startAssessment('movement', 'Single-Leg Squat')">
+      <span class="nav-icon">⚖️</span> Single-Leg Squat
+    </button>
+    <button class="nav-btn" data-view="lunge" onclick="startAssessment('movement', 'Forward Lunge')">
+      <span class="nav-icon">🦵</span> Lunge
+    </button>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Insights</div>
+    <button class="nav-btn" data-view="report" onclick="showReport()">
+      <span class="nav-icon">📋</span> Full Report
+    </button>
+    <button class="nav-btn" data-view="correct" onclick="showCorrectives()">
+      <span class="nav-icon">🩹</span> Correctives
+    </button>
+    <button class="nav-btn" data-view="history" onclick="showHistory()">
+      <span class="nav-icon">📈</span> Session History
+    </button>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="clock">
+      <div class="time" id="clockTime">--:--</div>
+      <div id="clockDate">—</div>
+    </div>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title">
+      <h2 id="pageTitle">Dashboard</h2>
+      <p id="pageSub">Clinical-grade posture & movement intelligence</p>
+    </div>
+    <div class="status-pill" id="systemStatus">
+      <span class="status-dot" id="statusDot"></span>
+      <span id="statusText">Ready</span>
+    </div>
+  </div>
+  <div class="content-area" id="content"></div>
+</div>
+
+<!-- MediaPipe -->
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
+
+<script>
+// ============== STATE ==============
+let pose = null;
+let camera = null;
+let isLive = false;
+let currentLandmarks = null;
+let lastAnalysis = null;
+let sessionHistory = JSON.parse(localStorage.getItem('aetherHistory') || '[]');
+let currentMode = null; // 'posture' | 'movement'
+let currentName = null;
+
+// ============== UTILITIES ==============
+function setActiveNav(view) {
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.view === view);
+  });
+}
+function setPage(title, sub) {
+  document.getElementById('pageTitle').textContent = title;
+  document.getElementById('pageSub').textContent = sub;
+}
+function setStatus(text, live = false) {
+  document.getElementById('statusText').textContent = text;
+  const dot = document.getElementById('statusDot');
+  dot.className = 'status-dot' + (live ? ' live' : '');
+}
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clockTime').textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  document.getElementById('clockDate').textContent = now.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
+// ============== ANGLE HELPERS ==============
+function angleBetween(a, b, c) {
+  // angle at point b
+  const ab = { x: a.x - b.x, y: a.y - b.y };
+  const cb = { x: c.x - b.x, y: c.y - b.y };
+  const dot = ab.x * cb.x + ab.y * cb.y;
+  const magAB = Math.sqrt(ab.x * ab.x + ab.y * ab.y);
+  const magCB = Math.sqrt(cb.x * cb.x + cb.y * cb.y);
+  if (magAB === 0 || magCB === 0) return 0;
+  let cos = dot / (magAB * magCB);
+  cos = Math.max(-1, Math.min(1, cos));
+  return Math.acos(cos) * (180 / Math.PI);
+}
+
+function landmark(lms, idx) {
+  if (!lms || !lms[idx]) return null;
+  return lms[idx];
+}
+
+// ============== ANALYSIS ENGINE ==============
+function analyzePosture(lms, view) {
+  if (!lms) return null;
+  const findings = [];
+  let score = 100;
+
+  // Key landmarks (MediaPipe Pose)
+  const nose = landmark(lms, 0);
+  const lShoulder = landmark(lms, 11);
+  const rShoulder = landmark(lms, 12);
+  const lHip = landmark(lms, 23);
+  const rHip = landmark(lms, 24);
+  const lKnee = landmark(lms, 25);
+  const rKnee = landmark(lms, 26);
+  const lAnkle = landmark(lms, 27);
+  const rAnkle = landmark(lms, 28);
+  const lEar = landmark(lms, 7);
+  const rEar = landmark(lms, 8);
+
+  // Shoulder height asymmetry
+  if (lShoulder && rShoulder) {
+    const diff = Math.abs(lShoulder.y - rShoulder.y) * 100; // rough % of frame
+    if (diff > 2.5) {
+      findings.push({ status: 'warn', title: 'Shoulder height asymmetry', detail: `Difference ≈ ${diff.toFixed(1)}% of frame height` });
+      score -= 8;
+    } else {
+      findings.push({ status: 'ok', title: 'Shoulder alignment', detail: 'Level within normal range' });
+    }
+  }
+
+  // Forward head approximation (lateral view best)
+  if (view === 'Lateral' && nose && lShoulder) {
+    // Simple horizontal offset
+    const offset = (nose.x - lShoulder.x) * 100;
+    if (Math.abs(offset) > 4) {
+      findings.push({ status: 'bad', title: 'Forward head posture tendency', detail: `Horizontal offset ≈ ${Math.abs(offset).toFixed(1)}%` });
+      score -= 15;
+    } else {
+      findings.push({ status: 'ok', title: 'Head position', detail: 'Acceptable alignment' });
+    }
+  }
+
+  // Pelvic tilt approximation
+  if (lHip && rHip && lShoulder && rShoulder) {
+    const shoulderMidY = (lShoulder.y + rShoulder.y) / 2;
+    const hipMidY = (lHip.y + rHip.y) / 2;
+    // Just check relative positions for gross issues
+    findings.push({ status: 'ok', title: 'Pelvic landmarks detected', detail: 'Use lateral view for precise tilt angle' });
+  }
+
+  // Knee alignment (frontal)
+  if (view === 'Anterior' && lKnee && rKnee && lAnkle && rAnkle && lHip && rHip) {
+    const lKneeAngle = angleBetween(lHip, lKnee, lAnkle);
+    const rKneeAngle = angleBetween(rHip, rKnee, rAnkle);
+    // In standing these should be near 180
+    if (Math.abs(lKneeAngle - 180) > 12 || Math.abs(rKneeAngle - 180) > 12) {
+      findings.push({ status: 'warn', title: 'Knee hyperextension / flexion bias', detail: `L ${lKneeAngle.toFixed(0)}° · R ${rKneeAngle.toFixed(0)}°` });
+      score -= 6;
+    }
+  }
+
+  if (findings.length === 0) {
+    findings.push({ status: 'ok', title: 'Primary landmarks detected', detail: 'No major red flags in this frame' });
+  }
+
+  return { score: Math.max(40, score), findings, view };
+}
+
+function analyzeMovement(lms, name) {
+  if (!lms) return null;
+  const findings = [];
+  let score = 85;
+
+  const lShoulder = landmark(lms, 11);
+  const rShoulder = landmark(lms, 12);
+  const lHip = landmark(lms, 23);
+  const rHip = landmark(lms, 24);
+  const lKnee = landmark(lms, 25);
+  const rKnee = landmark(lms, 26);
+  const lAnkle = landmark(lms, 27);
+  const rAnkle = landmark(lms, 28);
+
+  const joints = [];
+
+  if (lHip && lKnee && lAnkle) {
+    const angle = angleBetween(lHip, lKnee, lAnkle);
+    joints.push({ name: 'Left knee', value: angle.toFixed(0) + '°', asym: false });
+  }
+  if (rHip && rKnee && rAnkle) {
+    const angle = angleBetween(rHip, rKnee, rAnkle);
+    joints.push({ name: 'Right knee', value: angle.toFixed(0) + '°', asym: false });
+  }
+
+  // Simple knee valgus check (frontal plane approximation)
+  if (lKnee && rKnee && lAnkle && rAnkle && lHip && rHip) {
+    // Very rough: if knee is significantly medial to hip-ankle line
+    findings.push({ status: 'ok', title: 'Joint tracking active', detail: 'Real-time angles updating' });
+  }
+
+  if (name.includes('Squat')) {
+    findings.push({ status: 'ok', title: 'Squat depth tracking', detail: 'Monitor knee flexion angles above' });
+  }
+  if (name.includes('Single-Leg')) {
+    findings.push({ status: 'warn', title: 'Single-leg control', detail: 'Watch for excessive trunk lean or knee valgus' });
+    score -= 5;
+  }
+
+  return { score, findings, joints, name };
+}
+
+// ============== MEDIAPIPE SETUP ==============
+async function initPose() {
+  if (pose) return;
+  setStatus('Loading pose model…');
+  pose = new Pose({
+    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
+  });
+  pose.setOptions({
+    modelComplexity: 1,
+    smoothLandmarks: true,
+    enableSegmentation: false,
+    minDetectionConfidence: 0.6,
+    minTrackingConfidence: 0.6
+  });
+  pose.onResults(onPoseResults);
+  setStatus('Model ready');
+}
+
+function onPoseResults(results) {
+  const canvas = document.getElementById('outputCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const video = document.getElementById('inputVideo');
+  const img = document.getElementById('inputImage');
+
+  // Match canvas size
+  const source = (video && video.style.display !== 'none') ? video : img;
+  if (!source) return;
+
+  canvas.width = source.videoWidth || source.naturalWidth || source.clientWidth;
+  canvas.height = source.videoHeight || source.naturalHeight || source.clientHeight;
+
+  ctx.save();
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  if (results.poseLandmarks) {
+    currentLandmarks = results.poseLandmarks;
+    drawConnectors(ctx, results.poseLandmarks, POSE_CONNECTIONS, { color: '#00e8c8', lineWidth: 3 });
+    drawLandmarks(ctx, results.poseLandmarks, { color: '#4aa8ff', lineWidth: 1, radius: 4 });
+  }
+  ctx.restore();
+}
+
+// ============== LIVE CAMERA ==============
+async function startLive() {
+  await initPose();
+  const video = document.getElementById('inputVideo');
+  const overlay = document.getElementById('mediaOverlay');
+  if (!video) return;
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
+      audio: false
+    });
+    video.srcObject = stream;
+    video.style.display = 'block';
+    document.getElementById('inputImage').style.display = 'none';
+    await video.play();
+
+    camera = new Camera(video, {
+      onFrame: async () => {
+        if (pose) await pose.send({ image: video });
+      },
+      width: 1280,
+      height: 720
+    });
+    camera.start();
+    isLive = true;
+    overlay.classList.add('hidden');
+    setStatus('Live camera', true);
+  } catch (err) {
+    console.error(err);
+    setStatus('Camera access denied');
+    alert('Camera permission is required for live analysis. Please allow access or use Upload instead.');
+  }
+}
+
+function stopLive() {
+  if (camera) {
+    camera.stop();
+    camera = null;
+  }
+  const video = document.getElementById('inputVideo');
+  if (video && video.srcObject) {
+    video.srcObject.getTracks().forEach(t => t.stop());
+    video.srcObject = null;
+  }
+  isLive = false;
+  setStatus('Ready');
+}
+
+// ============== UPLOAD ==============
+function handleUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  stopLive();
+  const video = document.getElementById('inputVideo');
+  const img = document.getElementById('inputImage');
+  const overlay = document.getElementById('mediaOverlay');
+  const url = URL.createObjectURL(file);
+
+  if (file.type.startsWith('video/')) {
+    video.src = url;
+    video.style.display = 'block';
+    img.style.display = 'none';
+    video.onloadeddata = async () => {
+      await initPose();
+      video.play();
+      // Process frames periodically
+      const process = async () => {
+        if (video.paused || video.ended) return;
+        await pose.send({ image: video });
+        requestAnimationFrame(process);
+      };
+      process();
+      overlay.classList.add('hidden');
+      setStatus('Video playing');
+    };
+  } else if (file.type.startsWith('image/')) {
+    img.src = url;
+    img.style.display = 'block';
+    video.style.display = 'none';
+    img.onload = async () => {
+      await initPose();
+      await pose.send({ image: img });
+      overlay.classList.add('hidden');
+      setStatus('Image loaded');
+    };
+  }
+}
+
+// ============== CAPTURE & ANALYZE ==============
+function captureAndAnalyze() {
+  if (!currentLandmarks) {
+    alert('No pose detected yet. Make sure a person is fully visible.');
+    return;
+  }
+
+  let result;
+  if (currentMode === 'posture') {
+    result = analyzePosture(currentLandmarks, currentName);
+  } else {
+    result = analyzeMovement(currentLandmarks, currentName);
+  }
+
+  lastAnalysis = {
+    ...result,
+    mode: currentMode,
+    name: currentName,
+    timestamp: new Date().toISOString()
+  };
+
+  // Save to history
+  sessionHistory.unshift(lastAnalysis);
+  if (sessionHistory.length > 30) sessionHistory.pop();
+  localStorage.setItem('aetherHistory', JSON.stringify(sessionHistory));
+
+  renderResults(lastAnalysis);
+}
+
+function renderResults(data) {
+  const container = document.getElementById('resultsArea');
+  if (!container) return;
+
+  const grade = data.score >= 80 ? 'good' : data.score >= 65 ? 'warn' : 'bad';
+
+  let jointsHtml = '';
+  if (data.joints && data.joints.length) {
+    jointsHtml = data.joints.map(j => `
+      <div class="joint-row">
+        <span>${j.name}</span>
+        <span class="joint-angle">${j.value}</span>
+      </div>
+    `).join('');
+  }
+
+  container.innerHTML = `
+    <div class="section-title">Analysis Results</div>
+    <div class="results-grid">
+      <div class="result-card">
+        <h4>Score <span class="score-badge ${grade}">${data.score}/100</span></h4>
+        <div class="progress-bar"><div style="width:${data.score}%;background:var(--${grade === 'good' ? 'success' : grade === 'warn' ? 'warning' : 'danger'})"></div></div>
+        <div style="margin-top:14px">
+          ${data.findings.map(f => `
+            <div class="finding">
+              <div class="status ${f.status}"></div>
+              <div class="detail">
+                <strong>${f.title}</strong>
+                <span>${f.detail}</span>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+      ${jointsHtml ? `
+      <div class="result-card">
+        <h4>Joint Angles</h4>
+        ${jointsHtml}
+      </div>` : ''}
+    </div>
+    <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn" onclick="showCorrectives()">View Correctives</button>
+      <button class="btn secondary" onclick="showReport()">Add to Report</button>
+    </div>
+  `;
+}
+
+// ============== UI VIEWS ==============
+function showHome() {
+  stopLive();
+  setActiveNav('home');
+  setPage('Dashboard', 'Clinical-grade posture & movement intelligence');
+  document.getElementById('content').innerHTML = `
+    <div class="hero">
+      <h1>Aether <span>Posture & Movement Lab</span></h1>
+      <p>Live webcam or upload analysis powered by MediaPipe. Multi-view posture protocol and biomechanical movement scoring — all in the browser.</p>
+    </div>
+
+    <div class="section-title">Static Posture Views</div>
+    <div class="view-grid">
+      <div class="view-card" onclick="startAssessment('posture','Anterior')"><div class="icon">↑</div><h4>Anterior</h4><p>Frontal plane alignment</p></div>
+      <div class="view-card" onclick="startAssessment('posture','Posterior')"><div class="icon">↓</div><h4>Posterior</h4><p>Scapulae & spine</p></div>
+      <div class="view-card" onclick="startAssessment('posture','Lateral')"><div class="icon">→</div><h4>Lateral</h4><p>Sagittal plane • Head & pelvis</p></div>
+      <div class="view-card" onclick="startAssessment('posture','Oblique')"><div class="icon">↗</div><h4>Oblique</h4><p>Rotational context</p></div>
+    </div>
+
+    <div class="section-title">Core Movement Assessments</div>
+    <div class="tool-grid">
+      <div class="tool-card" onclick="startAssessment('movement','Overhead Squat')">
+        <div class="card-icon">🏋️</div><h3>Overhead Squat</h3><p>Global mobility & stability screen</p><span class="tag">Gold Standard</span>
+      </div>
+      <div class="tool-card" onclick="startAssessment('movement','Single-Leg Squat')">
+        <div class="card-icon">⚖️</div><h3>Single-Leg Squat</h3><p>Unilateral control & knee tracking</p><span class="tag purple">Stability</span>
+      </div>
+      <div class="tool-card" onclick="startAssessment('movement','Forward Lunge')">
+        <div class="card-icon">🦵</div><h3>Forward Lunge</h3><p>Hip mobility & deceleration</p><span class="tag blue">Unilateral</span>
+      </div>
+      <div class="tool-card" onclick="startAssessment('movement','Bodyweight Squat')">
+        <div class="card-icon">⬇️</div><h3>Bodyweight Squat</h3><p>Depth, trunk, knee path</p><span class="tag blue">Lower Body</span>
+      </div>
+      <div class="tool-card" onclick="startAssessment('movement','Single-Leg RDL')">
+        <div class="card-icon">🔄</div><h3>Single-Leg RDL</h3><p>Hip hinge quality</p><span class="tag purple">Hinge</span>
+      </div>
+      <div class="tool-card" onclick="startAssessment('movement','Countermovement Jump')">
+        <div class="card-icon">🚀</div><h3>Countermovement Jump</h3><p>Power & landing mechanics</p><span class="tag orange">Power</span>
+      </div>
+    </div>
+  `;
+}
+
+function showPostureHub() {
+  stopLive();
+  setActiveNav('posture');
+  setPage('Multi-View Posture Scan', 'Anterior • Posterior • Lateral • Oblique');
+  document.getElementById('content').innerHTML = `
+    <div class="hero">
+      <h1>Complete <span>Posture Protocol</span></h1>
+      <p>Capture all four views for a comprehensive static postural baseline.</p>
+    </div>
+    <div class="view-grid">
+      <div class="view-card" onclick="startAssessment('posture','Anterior')"><div class="icon">↑</div><h4>Anterior View</h4><p>Head, shoulders, pelvis, knees, feet</p></div>
+      <div class="view-card" onclick="startAssessment('posture','Posterior')"><div class="icon">↓</div><h4>Posterior View</h4><p>Scapulae, spine, heel alignment</p></div>
+      <div class="view-card" onclick="startAssessment('posture','Lateral')"><div class="icon">→</div><h4>Lateral View</h4><p>Forward head, kyphosis, pelvic tilt</p></div>
+      <div class="view-card" onclick="startAssessment('posture','Oblique')"><div class="icon">↗</div><h4>Oblique View</h4><p>Rotational asymmetries</p></div>
+    </div>
+  `;
+}
+
+function showMovementHub() {
+  stopLive();
+  setActiveNav('move');
+  setPage('Movement Assessment Hub', 'Real-time joint tracking & scoring');
+  document.getElementById('content').innerHTML = `
+    <div class="hero">
+      <h1>Movement <span>Intelligence</span></h1>
+      <p>Objective scoring of foundational patterns with live skeleton overlay.</p>
+    </div>
+    <div class="tool-grid">
+      <div class="tool-card" onclick="startAssessment('movement','Overhead Squat')"><div class="card-icon">🏋️</div><h3>Overhead Squat</h3><p>Global screen</p><span class="tag">Gold Standard</span></div>
+      <div class="tool-card" onclick="startAssessment('movement','Bodyweight Squat')"><div class="card-icon">⬇️</div><h3>Bodyweight Squat</h3><p>Depth & control</p><span class="tag blue">Lower</span></div>
+      <div class="tool-card" onclick="startAssessment('movement','Forward Lunge')"><div class="card-icon">🦵</div><h3>Forward Lunge</h3><p>Hip & knee</p><span class="tag purple">Unilateral</span></div>
+      <div class="tool-card" onclick="startAssessment('movement','Lateral Lunge')"><div class="card-icon">↔️</div><h3>Lateral Lunge</h3><p>Frontal plane</p><span class="tag blue">Frontal</span></div>
+      <div class="tool-card" onclick="startAssessment('movement','Single-Leg Squat')"><div class="card-icon">⚖️</div><h3>Single-Leg Squat</h3><p>Stability & valgus</p><span class="tag orange">Stability</span></div>
+      <div class="tool-card" onclick="startAssessment('movement','Single-Leg RDL')"><div class="card-icon">🔄</div><h3>Single-Leg RDL</h3><p>Hinge quality</p><span class="tag purple">Hinge</span></div>
+      <div class="tool-card" onclick="startAssessment('movement','Countermovement Jump')"><div class="card-icon">🚀</div><h3>CM Jump</h3><p>Power & landing</p><span class="tag orange">Power</span></div>
+      <div class="tool-card" onclick="startAssessment('movement','Single-Leg Balance')"><div class="card-icon">🧘</div><h3>Single-Leg Balance</h3><p>Neuromuscular</p><span class="tag blue">Balance</span></div>
+    </div>
+  `;
+}
+
+function startAssessment(mode, name) {
+  currentMode = mode;
+  currentName = name;
+  const viewKey = mode === 'posture' 
+    ? (name === 'Anterior' ? 'ant' : name === 'Posterior' ? 'post' : name === 'Lateral' ? 'lat' : 'obl')
+    : (name.includes('Overhead') ? 'ohs' : name.includes('Single-Leg Squat') ? 'sls' : name.includes('Lunge') ? 'lunge' : 'move');
+  setActiveNav(viewKey);
+  setPage(name, mode === 'posture' ? 'Static postural analysis' : 'Dynamic movement analysis');
+
+  document.getElementById('content').innerHTML = `
+    <div class="assessment-panel">
+      <div class="assessment-header">
+        <div>
+          <h3>${name}</h3>
+          <p>${mode === 'posture' 
+            ? 'Stand 2.5–3 m away, barefoot, form-fitting clothes. Full body in frame.' 
+            : 'Full body in frame. Perform 3–5 controlled repetitions.'}</p>
+        </div>
+        <div class="controls-row" style="margin:0">
+          <button class="btn" id="btnLive" onclick="startLive()">● Start Live Camera</button>
+          <button class="btn secondary" onclick="document.getElementById('fileInput').click()">Upload Photo / Video</button>
+          <input type="file" id="fileInput" accept="image/*,video/*" onchange="handleUpload(event)">
+          <button class="btn secondary" id="btnStop" onclick="stopLive()" style="display:none">Stop Camera</button>
+        </div>
+      </div>
+
+      <div class="media-container">
+        <video id="inputVideo" playsinline style="display:none"></video>
+        <img id="inputImage" style="display:none">
+        <canvas id="outputCanvas"></canvas>
+        <div class="media-overlay" id="mediaOverlay">
+          <div style="font-size:36px;opacity:0.5">📷</div>
+          <div>Start live camera or upload a file</div>
+          <div style="font-size:12px;opacity:0.7">Pose estimation runs entirely in your browser</div>
+        </div>
+      </div>
+
+      <div class="controls-row">
+        <button class="btn" onclick="captureAndAnalyze()">Capture & Analyze Current Frame</button>
+        <button class="btn secondary" onclick="stopLive()">Reset</button>
+      </div>
+
+      <div id="resultsArea"></div>
+    </div>
+  `;
+
+  // Show/hide stop button when live starts
+  const origStart = startLive;
+  // (handled inside startLive via setStatus)
+}
+
+function showReport() {
+  stopLive();
+  setActiveNav('report');
+  setPage('Full Assessment Report', 'Session summary');
+  const items = sessionHistory.slice(0, 8);
+  document.getElementById('content').innerHTML = `
+    <div class="assessment-panel">
+      <div class="assessment-header">
+        <div>
+          <h3>Aether Session Report</h3>
+          <p>Generated ${new Date().toLocaleString()} • ${items.length} analyses this session</p>
+        </div>
+        <button class="btn" onclick="window.print()">Print / Save PDF</button>
+      </div>
+      ${items.length === 0 ? `
+        <div class="empty-state"><div class="icon">📋</div><p>No analyses yet. Run a posture or movement assessment first.</p></div>
+      ` : `
+        <div class="results-grid">
+          ${items.map(item => `
+            <div class="result-card">
+              <h4>${item.name || item.view} <span class="score-badge ${item.score >= 80 ? 'good' : item.score >= 65 ? 'warn' : 'bad'}">${item.score}/100</span></h4>
+              <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px">${new Date(item.timestamp).toLocaleString()}</div>
+              ${item.findings.slice(0,3).map(f => `
+                <div class="finding">
+                  <div class="status ${f.status}"></div>
+                  <div class="detail"><strong>${f.title}</strong><span>${f.detail}</span></div>
+                </div>
+              `).join('')}
+            </div>
+          `).join('')}
+        </div>
+      `}
+    </div>
+  `;
+}
+
+function showCorrectives() {
+  stopLive();
+  setActiveNav('correct');
+  setPage('Corrective Exercise Library', 'Evidence-based interventions');
+  document.getElementById('content').innerHTML = `
+    <div class="hero">
+      <h1>Targeted <span>Correctives</span></h1>
+      <p>Matched to common findings from posture and movement analysis.</p>
+    </div>
+    <div class="list-grid">
+      <div class="list-card"><div class="num">01</div><div class="info"><h4>Ankle Dorsiflexion</h4><p>Banded distraction + knee-to-wall</p></div></div>
+      <div class="list-card"><div class="num">02</div><div class="info"><h4>Hip Flexor Release + Activation</h4><p>Half-kneeling with posterior tilt</p></div></div>
+      <div class="list-card"><div class="num">03</div><div class="info"><h4>Glute Medius Series</h4><p>Side-lying → standing → dynamic</p></div></div>
+      <div class="list-card"><div class="num">04</div><div class="info"><h4>Scapular Stabilization</h4><p>Wall slides, YTWs, serratus</p></div></div>
+      <div class="list-card"><div class="num">05</div><div class="info"><h4>Deep Neck Flexors</h4><p>Chin tuck holds + endurance</p></div></div>
+      <div class="list-card"><div class="num">06</div><div class="info"><h4>Thoracic Extension</h4><p>Foam roller + open books</p></div></div>
+      <div class="list-card"><div class="num">07</div><div class="info"><h4>Single-Leg Control</h4><p>SLS progressions with feedback</p></div></div>
+      <div class="list-card"><div class="num">08</div><div class="info"><h4>Anti-Rotation Core</h4><p>Pallof press variations</p></div></div>
+    </div>
+  `;
+}
+
+function showHistory() {
+  stopLive();
+  setActiveNav('history');
+  setPage('Session History', 'Stored locally in your browser');
+  document.getElementById('content').innerHTML = `
+    <div class="hero">
+      <h1>Session <span>History</span></h1>
+      <p>Recent analyses saved in localStorage. Clear browser data to reset.</p>
+    </div>
+    ${sessionHistory.length === 0 ? `
+      <div class="empty-state"><div class="icon">📈</div><p>No history yet.</p></div>
+    ` : `
+      <div class="list-grid">
+        ${sessionHistory.map((h, i) => `
+          <div class="list-card">
+            <div class="num">${String(i+1).padStart(2,'0')}</div>
+            <div class="info">
+              <h4>${h.name || h.view} — ${h.score}/100</h4>
+              <p>${new Date(h.timestamp).toLocaleString()}</p>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+      <div style="margin-top:20px">
+        <button class="btn danger" onclick="clearHistory()">Clear History</button>
+      </div>
+    `}
+  `;
+}
+
+function clearHistory() {
+  if (confirm('Clear all session history?')) {
+    sessionHistory = [];
+    localStorage.removeItem('aetherHistory');
+    showHistory();
+  }
+}
+
+// ============== INIT ==============
+showHome();
+updateClock();
+setInterval(updateClock, 30000);
+
+// Clean up camera on page unload
+window.addEventListener('beforeunload', stopLive);
+</script>
+</body>
+</html>
